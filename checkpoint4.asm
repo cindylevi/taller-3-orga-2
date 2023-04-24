@@ -16,6 +16,7 @@ global strLen
 
 ; int32_t strCmp(char* a, char* b)
 strCmp:
+	
 	ret
 
 ; char* strClone(char* a)
