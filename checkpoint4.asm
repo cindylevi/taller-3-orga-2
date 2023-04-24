@@ -3,7 +3,7 @@ extern free
 extern fprintf
 
 section .data
-
+    null_msg db "NULL", 0      ; Mensaje para imprimir si el string es vacío
 section .text
 
 global strCmp
@@ -14,28 +14,136 @@ global strLen
 
 ; ** String **
 
-; int32_t strCmp(char* a, char* b)
+; int32_t strCmp(char* a[rdi], char* b[rsi])
 strCmp:
-	
+	;prologo
+	push rbp
+	mov rbp, rsp
+
+	cicloCmp:
+		mov bl, byte[rdi] ; bl =  char A
+		mov cl, byte[rsi] ; cl =  char B
+		cmp bl, cl
+		jnz sonDistintos
+		cmp bl, 0
+		jz sonIguales
+		add rdi, 1
+		add rsi, 1
+	jmp cicloCmp
+
+
+	sonDistintos:
+		cmp bl, cl
+		jg aEsMayor
+		jmp bEsMayor
+
+	aEsMayor:
+		mov eax, -1
+		jmp terminarCmp
+
+	bEsMayor:
+		mov eax, 1
+		jmp terminarCmp
+
+	sonIguales:
+		mov eax, 0
+		jmp terminarCmp
+
+terminarCmp:
+	;epilogo
+	pop rbp
 	ret
 
-; char* strClone(char* a)
+
+
+; char* strClone(char* a[rdi])
 strClone:
+	;prologo
+	push rbp
+	mov rbp, rsp
+	push r12
+	push r13
+
+	mov r12, rdi
+
+	call strLen
+	mov r13, rax
+
+	mov rdi, rax ; pasamos por parametro la long del array
+	add rdi, 1	; le sumamos 1
+	call malloc
+	mov r9, rax ; r9 = pos de memoria del nuevo string
+
+	add r13, 1
+	mov rcx, r13 ; carga la cantidad de iteraciones a hacer al contador de vueltas
+	.cycle:     ; etiqueta a donde retorna el ciclo que itera sobre arr
+		mov r8b, byte[r12] ; r8b = char actual
+		mov byte[r9], r8b
+		add r9, 1
+		add r12, 1
+	loop .cycle ; decrementa ecx y si es distinto de 0 salta a .cycle
+
+	;epilogo
+	pop r13
+	pop r12
+	pop rbp
 	ret
 
 ; void strDelete(char* a)
 strDelete:
-	; Esto no funciona porque copia el puntero al string
-	; pero no el string en sí mismo
-	mov rax, rdi
+	;prologo
+	push rbp
+	mov rbp, rsp
+	
+	call free
+
+	;epilogo
+	pop rbp
 	ret
 
-; void strPrint(char* a, FILE* pFile)
+; void strPrint(char* a[rdi], FILE* pFile[rsi])
 strPrint:
+	;prologo
+	push rbp
+	mov rbp, rsp
+	push r12
+	push r13
+
+	mov r12, rdi
+	mov r13, rsi
+
+	mov bl, byte[rdi] ; bl = primer char
+	cmp bl, 0
+	jnz imprimir
+	mov rdi, null_msg
+
+imprimir:
+	call fprintf                ; Llamar a la función fprintf
+
+	;epilogo
+	pop r13
+	pop r12
+	pop rbp
 	ret
 
-; uint32_t strLen(char* a)
+; uint32_t strLen(char* a[rdi])
 strLen:
-	ret
+	;prologo
+	push rbp
+	mov rbp, rsp
 
+	mov eax, 0
+
+	ciclo:
+	mov bl, byte[rdi] ; bl = char actual
+	cmp bl, 0
+	jz terminar
+	add eax, 1
+	add rdi, 1
+	jmp ciclo
+
+terminar:
+	;epilogo
+	pop rbp
+	ret
 
