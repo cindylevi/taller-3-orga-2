@@ -21,19 +21,18 @@ strCmp:
 	mov rbp, rsp
 
 	cicloCmp:
-		mov bl, byte[rdi] ; bl =  char A
+		mov r8b, byte[rdi] ; r8b =  char A
 		mov cl, byte[rsi] ; cl =  char B
-		cmp bl, cl
+		cmp r8b, cl
 		jnz sonDistintos
-		cmp bl, 0
+		cmp r8b, 0
 		jz sonIguales
 		add rdi, 1
 		add rsi, 1
 	jmp cicloCmp
 
-
 	sonDistintos:
-		cmp bl, cl
+		cmp r8b, cl
 		jg aEsMayor
 		jmp bEsMayor
 
